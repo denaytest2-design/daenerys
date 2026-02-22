@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Daenerys Hacking Tool</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<style>
+body{
+    background:#1e1e1e;
+    color:white;
+    font-family:Arial, sans-serif;
+    text-align:center;
+    transition:0.3s;
+    -webkit-tap-highlight-color: transparent;
+}
+.container{
+    width:90%;
+    max-width:400px;
+    margin:40px auto;
+}
+.display{
+    background:#2d2d2d;
+    height:60px;
+    line-height:60px;
+    font-size:24px;
+    border-radius:6px;
+    margin-bottom:15px;
+    overflow:hidden;
+}
+.grid{
+    display:grid;
+    grid-template-columns: repeat(3,1fr);
+    gap:10px;
+}
+button{
+    padding:20px;
+    font-size:20px;
+    border:none;
+    border-radius:6px;
+    background:#323232;
+    color:white;
+    cursor:pointer;
+    user-select:none;
+    touch-action: manipulation;
+}
+button:hover{ background:#424242; }
+.guess{ background:#4CAF50; }
+.clear{ background:#FF5252; }
+
+#message{
+    font-size:20px;
+    font-weight:bold;
+    min-height:30px;
+}
+
+#time{
+    margin-top:15px;
+    font-size:18px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>Daenerys Hacking Tool</h2>
+<p>Range: 1 - 500,000</p>
+
+<p id="message"></p>
+
+<div class="display" id="display"></div>
+
+<div class="grid">
+<button onclick="addNumber(1)">1</button>
+<button onclick="addNumber(2)">2</button>
+<button onclick="addNumber(3)">3</button>
+<button onclick="addNumber(4)">4</button>
+<button onclick="addNumber(5)">5</button>
+<button onclick="addNumber(6)">6</button>
+<button onclick="addNumber(7)">7</button>
+<button onclick="addNumber(8)">8</button>
+<button onclick="addNumber(9)">9</button>
+<button class="clear" onclick="backspace()">←</button>
+<button onclick="addNumber(0)">0</button>
+<button class="guess" onclick="checkGuess()">✓</button>
+</div>
+
+<button style="margin-top:15px;" onclick="resetGame()">Reset</button>
+
+<div id="time">Time: 0s</div>
+
+</div>
+
+<script>
+let target = randomNumber();
+let guesses = 0;
+let currentInput = "";
+let timerStarted = false;
+let elapsedSeconds = 0;
+let timerInterval = null;
+
+function randomNumber(){
+    return Math.floor(Math.random()*500000)+1; // 1 تا 500,000
+}
+
+function startTimer(){
+    if(!timerStarted){
+        timerStarted = true;
+        timerInterval = setInterval(()=>{
+            elapsedSeconds++;
+            updateTime();
+        },1000);
+    }
+}
+
+function formatNumber(num){
+    return num.toLocaleString(); // جدا کردن هزارگان
+}
+
+function updateDisplay(){
+    if(currentInput === "") document.getElementById("display").innerText = "";
+    else document.getElementById("display").innerText = formatNumber(parseInt(currentInput));
+}
+
+function addNumber(num){
+    if(currentInput.length < 6){
+        currentInput += num;
+        updateDisplay();
+        startTimer(); // شروع تایمر با اولین عدد
+    }
+}
+
+// تابع جدید برای پاک کردن 1 رقم آخر
+function backspace(){
+    if(currentInput.length > 0){
+        currentInput = currentInput.slice(0, -1);
+        updateDisplay();
+    }
+}
+
+function checkGuess(){
+    if(currentInput === "") return;
+
+    let guess = parseInt(currentInput);
+
+    if(guess < 1 || guess > 500000){
+        setMessage("Out of range!", "orange");
+        backspace();
+        return;
+    }
+
+    guesses++;
+
+    if(guess < target){
+        setMessage("Higher ↑", "#4CAF50");
+        document.body.style.background = "#1e1e1e";
+    }else if(guess > target){
+        setMessage("Lower ↓", "#FF5252");
+        document.body.style.background = "#1e1e1e";
+    }else{
+        setMessage("🎉 You Win! Number was " + formatNumber(target), "#00E676");
+        document.body.style.background = "#1b5e20";
+        disableGame();
+        stopTimer();
+        return;
+    }
+
+    currentInput = "";
+    updateDisplay();
+}
+
+function setMessage(text,color){
+    let msg = document.getElementById("message");
+    msg.innerText = text;
+    msg.style.color = color;
+}
+
+function updateTime(){
+    document.getElementById("time").innerText = "Time: " + elapsedSeconds + "s";
+}
+
+function disableGame(){
+    document.querySelectorAll(".grid button").forEach(btn=>btn.disabled=true);
+}
+
+function stopTimer(){
+    clearInterval(timerInterval);
+}
+
+function resetGame(){
+    target = randomNumber();
+    guesses = 0;
+    currentInput = "";
+    elapsedSeconds = 0;
+    timerStarted = false;
+    stopTimer();
+    document.body.style.background = "#1e1e1e";
+    document.getElementById("display").innerText = "";
+    document.getElementById("message").innerText = "";
+    document.getElementById("message").style.color = "white";
+    updateTime();
+    document.querySelectorAll(".grid button").forEach(btn=>btn.disabled=false);
+}
+</script>
+
+</body>
+</html>
