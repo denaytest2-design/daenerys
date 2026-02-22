@@ -33,8 +33,8 @@ body{
     gap:10px;
 }
 button{
-    padding:20px;
-    font-size:20px;
+    padding:18px;
+    font-size:18px;
     border:none;
     border-radius:6px;
     background:#323232;
@@ -46,13 +46,21 @@ button{
 button:hover{ background:#424242; }
 .guess{ background:#4CAF50; }
 .clear{ background:#FF5252; }
+.range-btn{
+    background:#1976D2;
+    margin:3px;
+    padding:6px 10px;
+    font-size:13px;
+    border-radius:4px;
+}.active-range{
+    background:#00BCD4 !important;
+}
 
 #message{
     font-size:20px;
     font-weight:bold;
     min-height:30px;
 }
-
 #time{
     margin-top:15px;
     font-size:18px;
@@ -63,7 +71,14 @@ button:hover{ background:#424242; }
 
 <div class="container">
 <h2>Daenerys Hacking Tool</h2>
-<p>Range: 1 - 500,000</p>
+
+<div>
+<button class="range-btn active-range" onclick="setRange(100000,this)">1 - 100,000</button>
+<button class="range-btn" onclick="setRange(300000,this)">1 - 300,000</button>
+<button class="range-btn" onclick="setRange(500000,this)">1 - 500,000</button>
+</div>
+
+<p id="rangeText">Range: 1 - 100,000</p>
 
 <p id="message"></p>
 
@@ -91,15 +106,26 @@ button:hover{ background:#424242; }
 </div>
 
 <script>
+let maxRange = 100000;
 let target = randomNumber();
-let guesses = 0;
 let currentInput = "";
 let timerStarted = false;
 let elapsedSeconds = 0;
 let timerInterval = null;
 
 function randomNumber(){
-    return Math.floor(Math.random()*500000)+1; // 1 تا 500,000
+    return Math.floor(Math.random()*maxRange)+1;
+}
+
+function setRange(range,btn){
+    maxRange = range;
+    document.getElementById("rangeText").innerText =
+        "Range: 1 - " + range.toLocaleString();
+
+    document.querySelectorAll(".range-btn").forEach(b=>b.classList.remove("active-range"));
+    btn.classList.add("active-range");
+
+    resetGame();
 }
 
 function startTimer(){
@@ -113,23 +139,24 @@ function startTimer(){
 }
 
 function formatNumber(num){
-    return num.toLocaleString(); // جدا کردن هزارگان
+    return num.toLocaleString();
 }
 
 function updateDisplay(){
-    if(currentInput === "") document.getElementById("display").innerText = "";
-    else document.getElementById("display").innerText = formatNumber(parseInt(currentInput));
+    if(currentInput === "") 
+        document.getElementById("display").innerText = "";
+    else 
+        document.getElementById("display").innerText = formatNumber(parseInt(currentInput));
 }
 
 function addNumber(num){
     if(currentInput.length < 6){
         currentInput += num;
         updateDisplay();
-        startTimer(); // شروع تایمر با اولین عدد
+        startTimer();
     }
 }
 
-// تابع جدید برای پاک کردن 1 رقم آخر
 function backspace(){
     if(currentInput.length > 0){
         currentInput = currentInput.slice(0, -1);
@@ -142,20 +169,15 @@ function checkGuess(){
 
     let guess = parseInt(currentInput);
 
-    if(guess < 1 || guess > 500000){
+    if(guess < 1 || guess > maxRange){
         setMessage("Out of range!", "orange");
-        backspace();
         return;
     }
 
-    guesses++;
-
     if(guess < target){
         setMessage("Higher ↑", "#4CAF50");
-        document.body.style.background = "#1e1e1e";
     }else if(guess > target){
         setMessage("Lower ↓", "#FF5252");
-        document.body.style.background = "#1e1e1e";
     }else{
         setMessage("🎉 You Win! Number was " + formatNumber(target), "#00E676");
         document.body.style.background = "#1b5e20";
@@ -175,7 +197,8 @@ function setMessage(text,color){
 }
 
 function updateTime(){
-    document.getElementById("time").innerText = "Time: " + elapsedSeconds + "s";
+    document.getElementById("time").innerText =
+        "Time: " + elapsedSeconds + "s";
 }
 
 function disableGame(){
@@ -188,7 +211,6 @@ function stopTimer(){
 
 function resetGame(){
     target = randomNumber();
-    guesses = 0;
     currentInput = "";
     elapsedSeconds = 0;
     timerStarted = false;
